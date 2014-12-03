@@ -11,7 +11,7 @@ import re
 
 # CNF from String
 # According to the DIMACS format used in SAT competitions
-def generate(string, heuristic):
+def generate(string, heuristic, showInfo, showComments):
 
 	# Step 0 : Sanitize and split into lines
 	# Step 0a : replace multiple spaces by a single one
@@ -25,10 +25,10 @@ def generate(string, heuristic):
 
 	# Step 1a : Get comments and info and display them to user
 	comments = filter(lambda l : l[0] in ['p', 'c'], lines)
-	if comments :
-		print " Comments : \n=============="
-		print '\n'.join(comments)
-		print "=============="
+	if comments and showComments :
+		print " Comments : \n-----------"
+		print '\n'.join(map(lambda x : ' ' + x[1:].strip(), comments))
+		print 
 
 	# Step 2 : Get the actual CNF
 	cnf = lines[len(comments):]
@@ -50,7 +50,10 @@ def generate(string, heuristic):
 	clauses = [ logic.Clause(map(lambda x : literals[int(x)], line)) for line in sclauses ]
 
 	# Step 6 : display info to user
-	print "CNF with %r variables and %r clauses " % (len(variables), len(clauses))
+	if showInfo :
+		print " CNF Infos : \n-----------"
+		print " %r variables and %r clauses " % (len(variables), len(clauses))
+		print
 
 	# Step 7 : create CNF
 	return logic.CNF(clauses,[], heuristic)

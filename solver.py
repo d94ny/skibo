@@ -24,12 +24,13 @@ def solve(cnf):
 	# that makes all clauses containing them true.
 	# These clauses can be deleted
 	# cnf.pureEliminate()
-	# THIS MAKES IT MUCH SLOWER 
+	# Can make it much slower
 
 	# STEP 2a :
 	# If cnf contains an empty clause
 	# then the CNF is unsatisfiable
 	if cnf.emptyClause():
+		# print "Instance fail"
 		return False
 
 	# STEP 2b :
@@ -42,6 +43,8 @@ def solve(cnf):
 	# STEP 3 : Branching Step
 	# Select unassigned literal in CNF
 	l = cnf.branch()
+	# For bebugging 
+	# print "Branching on ", l
 
 	# STEP 4 : Create new CNF for new assignment
 	cnft = cnf.copy()

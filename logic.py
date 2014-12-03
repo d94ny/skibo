@@ -24,6 +24,14 @@ class Var:
 	def __init__(self, identifier):
 		self.identifier = identifier
 
+	# Equality
+	def __eq__(self,other):
+		self.identifier == other.identifier
+
+	# Hash for Dictionaries
+	def __hash__(self):
+		return hash(self.identifier)
+
 	# ======== Methods =========== #
 
 	# Assign a value to the variable
@@ -50,6 +58,10 @@ class Literal:
 	# For humans
 	def __repr__(self):
 		return str(self.variable) if self.polarity else '-' + str(self.variable)
+
+	# Hash for Dictionaries
+	def __hash__(self):
+		return hash(self.polarity) + hash(self.variable)
 
 	# ======== Methods =========== #
 
@@ -161,8 +173,11 @@ class CNF:
 	def branch(self):
 
 		# branching
-		return branching.heuristics[self.heuristic](self)
-
+		try:
+			return branching.heuristics[self.heuristic](self)
+		except:
+			print "ERROR : The heurisitc %s does not exist" % (self.heuristic)
+			exit(0)
 
 	# Returns solution
 	def solutions(self):
