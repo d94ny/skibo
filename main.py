@@ -85,10 +85,26 @@ except:
 	print "ERROR : The CNF file seems to be invalid"
 	exit(0)
 
+# Keep track of failures
+failures = [0]
 
+# Mesure Performance
 start = time.time()
-print solver.solve(cnf)
+sat = solver.solve(cnf, failures)
 end = time.time()
+
+# If CNF is satisfiable, solver will print a message
+# Otherwise 
+if not sat :
+	print " Solution : \n-----------"
+	print " unsatisfiable !"
+
+# If info display number of Failed splits
+if info :
+	print " Failed splits : %r " % failures[0]
+
+# Print for better display
+print
 
 if info:
 	print " Performance : \n-----------"

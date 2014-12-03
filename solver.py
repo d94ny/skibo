@@ -10,7 +10,7 @@ import logic
 
 # Main function
 # Solves only CNF for now
-def solve(cnf):
+def solve(cnf, failures):
 
 	# STEP 1a : Unit Propagation
 	# If a clause is a unit clause, i.e.
@@ -30,13 +30,15 @@ def solve(cnf):
 	# If cnf contains an empty clause
 	# then the CNF is unsatisfiable
 	if cnf.emptyClause():
-		# print "Instance fail"
+		failures[0] += 1
 		return False
 
 	# STEP 2b :
 	# If the cnf contains no more clauses
 	# then the CNF is satisfiable
 	if cnf.isEmpty():
+		print " Solution : \n-----------"
+		print " satisfiable !"
 		print cnf.solutions()
 		return True
 
@@ -53,7 +55,7 @@ def solve(cnf):
 	cnf.assign(l, False)
 
 	# STEP 5 : Split with 2 copies of CNF
-	return solve(cnft) or solve(cnf)
+	return solve(cnft, failures) or solve(cnf, failures)
 
 
 
