@@ -4,7 +4,7 @@
 # -------------------
 # Simple SAT Solver
 # -------------------
-# Daniel Ballle 2014
+# Daniel Balle 2014
 
 #
 # Implements multiple branching heuristics
@@ -90,7 +90,7 @@ def momsf(cnf):
 
 	# Step 0 : get k if not already set
 	global k
-	
+
 	while k == 0:
 		k = int(raw_input("Please enter a postive value for k :"))
 

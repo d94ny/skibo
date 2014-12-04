@@ -4,7 +4,7 @@
 # -------------------
 # Simple SAT Solver
 # -------------------
-# Daniel Ballle 2014
+# Daniel Balle 2014
 
 #
 # Converts a file or string to a CNF

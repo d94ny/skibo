@@ -4,7 +4,7 @@
 # -------------------
 # Simple SAT Solver
 # -------------------
-# Daniel Ballle 2014
+# Daniel Balle 2014
 
 # 
 # Main file responsible for reading a CNF formatted file
@@ -90,6 +90,7 @@ except:
 
 # Keep track of failures
 failures = [0]
+
 
 # STEP 6 :
 # -----

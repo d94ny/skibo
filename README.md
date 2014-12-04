@@ -4,8 +4,10 @@ _Daniel Balle • dballe_
 
 ## Intro
 
+## Files
+
+
 ## Usage
 
 	python main.py [file ...]
 
-	
