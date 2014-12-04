@@ -6,40 +6,45 @@
 # -------------------
 # Daniel Ballle 2014
 
+# 
+# Main file responsible for reading a CNF formatted file
+# and setting command arguments
+#
+
 import sys
 import solver
 import convert
 import time
 import getopt
 
-# List of arguments
-# <cnf> : cnf file
-# --comments : show file comments
-# --info : show full info (number of clauses/variables, number of fails, performance)
-# --help : display help page
-# --heuristic <heuristic> : select heuristic to use
-# -k : specify the constant k for MOMSF
 
-
-# STEP 1 : Verify that a CNF file was given
+# STEP 1 :
+# -----
+# Verify that a CNF file was given
 if len(sys.argv) < 2:
 
 	print "ERROR: Please provide a CNF file"
 	exit(0)
 
-# STEP 2 : Retrieve all optional arguments
+
+# STEP 2 :
+# -----
+# Retrieve all optional arguments
 try:
-	optlist, args = getopt.getopt(sys.argv[2:], '', ['heuristic=','comments','info','help'])
+	optlist, args = getopt.getopt(sys.argv[2:], '', ['heuristic=','comments','info','help','pure'])
 
 except getopt.GetoptError as err:
 	# Display the error
 	print str(err)
 	exit(0)
 
-# STEP 3 : Handle the optional arguments
+
+# STEP 3 :
+# -----
+# Handle the optional arguments
 
 # Set default values for all options
-heuristic, comments, info, _help = "firstLiteral", False, False, False
+heuristic, comments, info, _help, pure = "firstLiteral", False, False, False, False
 
 # Iterate over optional arguments
 for option, value in optlist:
@@ -49,25 +54,20 @@ for option, value in optlist:
 		comments = True
 	elif option == "--info":
 		info = True
+	elif option == "--help":
+		_help = True
+	elif pure == "--pure":
+		pure = True
 
 # Display help is needed
 if _help:
-	print "Usage : main.py CNF [--heuristic=...] [--comments] [--info] [--help]"
+	print "Usage : main.py CNF [--heuristic=...] [--comments] [--info] [--help] [--pure]"
 	exit(0)
 
-# FILES EXAMPLES:
-# aim-50-1_6-yes1-4.cnf.txt (true) WORK VERY WELL
-# aim-100-1_6-no-1.cnf.txt (false)
-# bf0432-007.cnf.txt (?)
-# dubois20.cnf.txt (false)
-# dubois21.cnf.txt (false)
-# dubois22.cnf.txt (false)
-# factoring2.txt (HARD)
-# hole6.cnf.txt (false) WORKS WELL !!
-# simple_v3_c2.cnf.txt
 
-
-# STEP 4 : Get the CNF file
+# STEP 4 :
+# -----
+# Open the CNF file
 file = sys.argv[1]
 f = open('../lab/'+file)
 string = f.read()
@@ -76,7 +76,10 @@ string = f.read()
 print chr(27) + "[2J"
 print "Solving %s using heuristic %s... \n\n" % (file, heuristic)
 
-# STEP 5 : Convert the file to a CNF
+
+# STEP 5 :
+# -----
+# Convert the file to a CNF
 try:
 	# Generate CNF from string with heuristic
 	# Also takes comments and info
@@ -88,27 +91,35 @@ except:
 # Keep track of failures
 failures = [0]
 
-# Mesure Performance
+# STEP 6 :
+# -----
+# Solve the CNF and mesure performance
 start = time.time()
-sat = solver.solve(cnf, failures)
+sat = solver.solve(cnf, pure, failures)
 end = time.time()
 
+
+# STEP 7 :
+# -----
+# Display results
+
 # If CNF is satisfiable, solver will print a message
-# Otherwise 
+# Otherwise notify user of failure
 if not sat :
 	print " Solution : \n-----------"
 	print " unsatisfiable !"
 
-# If info display number of Failed splits
+# If info display number of failed splits
 if info :
 	print " Failed splits : %r " % failures[0]
 
 # Print for better display
 print
 
+# Finally display performance
 if info:
 	print " Performance : \n-----------"
-	print " Solved in %r seconds." % (end - start)
+	print " Solved in %r seconds." % (round(end - start, 4))
 	print
 
 

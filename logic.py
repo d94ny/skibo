@@ -6,11 +6,20 @@
 # -------------------
 # Daniel Ballle 2014
 
+#
+# Implements logical components necessary for
+# the SAT solver
+#
+
 import random
 import branching
 
-# Implementing Logic in Python
 
+# Var represents a variable
+#
+# @field identifier : an unique integer ID
+# @field assignement : an assignment (True, False or None)
+#
 class Var:
 
 	# ========= Fields =========== #
@@ -20,13 +29,17 @@ class Var:
 
 	# ====== Constructors ======== #
 
-	# By default the variable has no assignment yet
+	# Variable Constructor
+	# Takes no assignment per default
 	def __init__(self, identifier):
 		self.identifier = identifier
 
+
 	# Equality
+	# Two variables are equal if their ID's are
 	def __eq__(self,other):
 		self.identifier == other.identifier
+
 
 	# Hash for Dictionaries
 	def __hash__(self):
@@ -38,26 +51,39 @@ class Var:
 	def assign(self, s):
 		self.assignment = s
 
+
+	# Representation for humans
 	def __repr__(self):
 		return str(self.identifier)
 
+
+
+# Literal represents a literal 
+# i.e a variable or its negation
+#
+# @field variable : the underlying variable
+# @field polarity : the polarity of the variable
+#                   False if variable is negated
+#
 class Literal:
 
 	# ========= Fields =========== #
 
-	# A literal is a variable or a negation of a variable
 	variable = None
 	polarity = True
 
 	# ====== Constructors ======== #
 
+	# Constructor takes both a variable and a polarity
 	def __init__(self, var, polarity):
 		self.polarity = polarity
 		self.variable = var
 
-	# For humans
+
+	# Representation for humans
 	def __repr__(self):
 		return str(self.variable) if self.polarity else '-' + str(self.variable)
+
 
 	# Hash for Dictionaries
 	def __hash__(self):
@@ -65,29 +91,40 @@ class Literal:
 
 	# ======== Methods =========== #
 
+
 	# Returns true when other is the opposite literal
 	def opposite(self, other):
 		return (self.variable == other.variable) and (self.polarity != other.polarity)
 
-	# assign a literal
+
+	# Assigns a value to a literal
+	# We assign the corresponding variable depending
+	# on the polarity of the literal
 	def assign(self,s):
 		self.variable.assign((not self.polarity) ^ s)
 
-	# unassign, so that we can use the same literal for
-	# multiple CNF's
+
+	# Unassigns a literal, so that we can use the
+	# same literal for multiple CNF's
 	def unassign(self):
 		self.variable.assign(None)
 
-	# get the value of the literal
-	# returns None if not assigned
+
+	# Get the value of the literal
+	# Returns None if not assigned
 	def value(self):
 		return None if self.variable.assignment == None else (not self.polarity) ^ self.variable.assignment
 
+
+
+# A Clause is disjunction over literals
+#
+# @field literals : a list of literals
+#
 class Clause:
 
 	# ========= Fields =========== #
 
-	# A clause is a disjunction over literals
 	literals = []
 
 	# ====== Constructors ======== #
@@ -96,37 +133,51 @@ class Clause:
 	def __init__(self, literals):
 		self.literals = literals
 
+
 	# Return a copy of the clause
-	# Only shallow copy, keep same literals !
+	# Only shallow copy, keep same literals
 	def copy(self):
 		return Clause(self.literals)
 
-	# For humans
+
+	# Representation for humans
 	def __repr__(self):
 		return str([ l for l in self.literals ])
 
 	# ======== Methods =========== #
 
+
 	# Returns whether the clause is an empty clause
-	# required in STEP 2a
+	# required in STEP 2a of solver.py
 	def isEmpty(self):
 		return len(self.literals) == 0
 
+
 	# Returns the unite literal if it exists
+	# (a unite literal is the only unassigned literal in a clause)
+	# Otherwise returns False
 	def unit(self):
 		return self.literals[0] if len(self.literals) == 1 else False
 
+
+
+# A CNF is a conjunction of clauses
+#
+# @field clauses : list of clauses
+# @field solution : keeps track of positively assigned literals
+# @field heuristic : the name of the heuristic used for the
+#                    bracnhing step
+#
 class CNF:
 
 	# ========= Fields =========== #
 
-	# A CNF is a conjunction of clauses
-	# solutions contains the positive literals (here just strings)
 	clauses = []
 	solution = []
-	heuristic = 0
+	heuristic = ""
 
 	# ====== Constructors ======== #
+
 
 	# CNF Constructor
 	def __init__(self, clauses, solution, heuristic):
@@ -134,8 +185,8 @@ class CNF:
 		self.solution = solution
 		self.heuristic = heuristic
 
-	# CNF Factory
-	# creates a new CNF
+
+	# CNF Factory : creates a new CNF
 	def copy(self):
 
 		# Copy all clauses
@@ -144,7 +195,8 @@ class CNF:
 		# Return a new CNF
 		return CNF(clauses, list(self.solution), self.heuristic)
 
-	# For humans
+
+	# Representation for humans
 	def __repr__(self):
 		return str([ clause for clause in self.clauses])
 
@@ -152,12 +204,12 @@ class CNF:
 
 	# Returns whether the CNF has no more clauses
 	# required in STEP 2b
-	# OK FOR 2.0
 	def isEmpty(self):
 		return len(self.clauses) == 0
 
+
 	# Returns whether the CNF contains an empty clause
-	# OK FOR 2.0
+	# required in STEP 2a
 	def emptyClause(self):
 
 		for clause in self.clauses:
@@ -165,40 +217,51 @@ class CNF:
 				return True
 		return False
 
-	# Returns a list of all literals
+
+	# Returns a list of all literals in this CNF
 	def getLiterals(self):
 		return [ l for clause in self.clauses for l in clause.literals ]
 
-	# Branch Split
+
+	# Branch Split : selects a unassigned literal
+	# accoridng to the heuristic
 	def branch(self):
 
-		# branching
+		# Branching heuristics is a dictonary (Map)
+		# of available heuristics
 		try:
 			return branching.heuristics[self.heuristic](self)
-		except:
+		except Exception as err:
 			print "ERROR : The heurisitc %s does not exist" % (self.heuristic)
+			print err
 			exit(0)
 
-	# Returns solution
+
+	# Returns the solution
+	# a list of positively assigned literals
 	def solutions(self):
 
 		# Sort the solution by absolute value
 		return sorted(self.solution,
 			key=lambda x: abs(int(x)))
 
-	# Simpify CNF
+
+	# Simpify CNF using the assignment of literals
+	# according to the following rules
 	def simplify(self):
 
-		# remove clauses with at least one TRUE
+		# RULE 1 : remove clauses with at least one TRUE
 		self.clauses = filter(
 			lambda c : len(filter(lambda l : l.value(), c.literals)) == 0,
 			self.clauses)
 
-		# delete all literals with assignement of FALSE
+		# RULE 2 : delete all literals with assignement of FALSE
 		for clause in self.clauses:
 			clause.literals = filter( lambda l : l.value() != False, clause.literals)
 
-	# Assigns a value to a literal and simplifies the CNF direcrtly afterwards
+
+	# Assigns a value to a literal
+	# and simplifies the CNF direcrtly afterwards
 	def assign(self, literal, value):
 
 		# 1. Save the assignement in the solutions
@@ -210,7 +273,12 @@ class CNF:
 		self.simplify()
 		literal.unassign()
 
+		# Assignments are here only used to
+		# simplify the CNF in a simple manner
+
+
 	# Unite Propagation
+	# Removes all unit clauses (clauses with one literal)
 	# required in STEP 1a
 	def unitPropagate(self):
 
@@ -222,24 +290,24 @@ class CNF:
 
 			for clause in self.clauses:
 
+				# Returns the unit if it exists otherwise False
 				unit = clause.unit()
 
 				# If we have a unit literal,
-				# assign it to True
+				# assign it to True (this removes the corresponding clause)
 				if unit :
 
 					self.assign(unit, True)
 					found = True
 
-				# Assigning these to true can creates
-				# new unit in other clauses
-
 			# break the while loop if we did not find
 			# any more unit literals or we have an empty clause
 			if self.emptyClause() or not found : return
 
-	# Says whether a literal is Pure
+
+	# Returns whether a literal is Pure
 	# that is it occurs with only one polarity in the cnf
+	# Note : this is very time expensive
 	def isPure(self, literal):
 
 		for l in self.getLiterals():
@@ -248,10 +316,10 @@ class CNF:
 		return True
 
 
-	# Pure Clauses can be removed
+	# Pure Elimination : Pure Clauses can be removed
 	# Just set the pure literals to true
 	# required in STEP 1b
-	# Unfortunately this is really slow
+	# Note : Unfortunately this is really slow
 	def pureEliminate(self):
 
 		for literal in self.getLiterals():
@@ -259,6 +327,7 @@ class CNF:
 
 				# Assign this literal to be True
 				self.assign(literal, True)
+
 
 
 

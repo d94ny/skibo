@@ -6,12 +6,19 @@
 # -------------------
 # Daniel Ballle 2014
 
+#
+# Implements multiple branching heuristics
+#
+
 import random
 import math
 from collections import defaultdict
 
+# ==== Global constants ====== #
+
+a, b, k = 0, 0, 0
+
 # ======== Helpers =========== #
-# Helper functions for the heuristics
 
 # Returns the clauses with minimum size
 def minClauses(clauses):
@@ -35,15 +42,27 @@ def minClauses(clauses):
 
 # ======= Heuristics ========= #
 
+# HEURISTIC 1 :
+# -----
 # First Occurence heuristic
+# Simply returns the first literal in the list
 def firstLiteral(cnf):
 	return cnf.getLiterals()[0]
 	
+
+# HEURISTIC 2 :
+# -----
 # Random heuristic
+# Returns a random heuristic
 def randomLiteral(cnf):
 	return random.choice(cnf.getLiterals())
 
+
+# HEURISTIC 3 :
+# -----
 # MOMS (Maximum Occurrence in clauses of Minimum Size) heuristic
+# Returns the literal whith the most occurences in all
+# clauses of minimum size
 def moms(cnf):
 
 	# Step 1 : Find Clause with Minimum Size
@@ -60,14 +79,20 @@ def moms(cnf):
 	# Returns the maximum
 	return max(occurences, key=occurences.get)
 
+
+# HEURISTIC 4 :
+# -----
 # MOMS alternative heuristic
 # If f(x) the number of occurences of the variable x
 # we choose the variable maximizing 
 # [f(x) + f(\x)] * 2^k + [f(x) * f(\x)]
 def momsf(cnf):
 
-	# Step 0 : get k
-	k = 2
+	# Step 0 : get k if not already set
+	global k
+	
+	while k == 0:
+		k = int(raw_input("Please enter a postive value for k :"))
 
 	# Step 1 : Find Clauses with Minimum Size
 	minc = minClauses(cnf.clauses)
@@ -88,7 +113,7 @@ def momsf(cnf):
 		# remember the corresponding literal (no matter the polarity)
 		reference[literal.variable] = literal
 
-	# Step 3 : comupte [f(x) + f(\x)] * 2k + [f(x) * f(\x)]
+	# Step 3 : comupte [f(x) + f(\x)] * 2k + [f(x) * f(\x)] for all x
 	values = { key : (v[0] + v[1])* math.pow(2,k) + (v[0]*v[1]) for key,v in occurences.items() }
 
 	# Step 4 : get the maximum varibale
@@ -97,6 +122,9 @@ def momsf(cnf):
 	# Step 5 : return one of the corresponding literal
 	return reference[var]
 
+
+# HEURISTIC 5 :
+# -----
 # Freeman's POSIT version of MOMs
 # Counts the positive x and negative x for each variable x
 def posit(cnf):
@@ -119,8 +147,10 @@ def posit(cnf):
 	return reference[max(occurences, key=occurences.get)]
 
 
-# Zabih and McAllester's version
-# counts the negative occurrences only of each given variable x
+# HEURISTIC 6 :
+# -----
+# Zabih and McAllester's version of MOMs
+# Counts the negative occurrences only of each given variable x
 def ZM(cnf):
 
 	# Step 1 : Find Clauses with Minimum Size
@@ -145,6 +175,27 @@ def ZM(cnf):
 	# Return the maximum
 	return reference[max(occurences, key=occurences.get)]
 
+
+# HEURISTIC 7 :
+# -----
+# DLCS (Dynamic Largest Combined Sum) heuristic
+# Count the number of clauses containing variable x
+def dlcs(cnf):
+
+	occurences = defaultdict(int)
+	reference = {}
+
+	for clause in cnf.clauses:
+
+		for literal in clause.literals:
+			occurences[literal.variable] += 1
+			reference[literal.variable] = literal
+
+	return reference[max(occurences, key=occurences.get)]
+
+
+# HEURISTIC 8 :
+# -----
 # BOHM heuristic
 # def bohm(cnf):
 	
@@ -166,21 +217,6 @@ def ZM(cnf):
 #def dlis(cnf):
 	# ...
 
-# DLCS (Dynamic Largest Combined Sum) heuristic
-# Count the number of clauses containing variable x
-def dlcs(cnf):
-
-	occurences = defaultdict(int)
-	reference = {}
-
-	for clause in cnf.clauses:
-
-		for literal in clause.literals:
-			occurences[literal.variable] += 1
-			reference[literal.variable] = l
-
-	return reference[max(occurences, key=occurences.get)]
-
 
 # VSIDS (Variable State Independent Decaying Sum) heuristic
 #def vsids(cnf):
@@ -191,8 +227,11 @@ def dlcs(cnf):
 	# ...
 
 
+# HEURISTIC 8 :
+# -----
 # Jeroslow-Wang heuristic
-# for some literal compute J(l) = \sum{l in clause c} 2^{-|c|}
+# For each literal compute J(l) = \sum{l in clause c} 2^{-|c|}
+# Return the literal maximizing J
 def jw(cnf):
 	
 	j = defaultdict(int)
@@ -209,7 +248,10 @@ def jw(cnf):
 
 
 
+# HEURISTIC 9 :
+# -----
 # Two Sided Jeroslow-Wang heuristic
+# Compute J(l) also counts the negation of l
 def jw2(cnf):
 
 	j = defaultdict(int)
@@ -226,6 +268,8 @@ def jw2(cnf):
 
 	return reference[max(j, key=j.get)]
 
+
+# ======== List =========== #
 
 # Global variable with all heuristics
 heuristics = { "firstLiteral": firstLiteral,
