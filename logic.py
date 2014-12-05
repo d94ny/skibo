@@ -313,7 +313,6 @@ class CNF:
 
 	# Returns whether a literal is Pure
 	# that is it occurs with only one polarity in the cnf
-	# Note : this is very time expensive
 	def isPure(self, literal):
 
 		for l in self.getLiterals():
@@ -326,10 +325,9 @@ class CNF:
 	# Pure Elimination : Pure Clauses can be removed
 	# Just set the pure literals to true
 	# required in STEP 1b
-	# Note : Unfortunately this is really slow
 	def pureEliminate(self):
 
-		# Force recomputation
+		# Force recomputation of literals
 		# until no more found
 
 		found = True
@@ -346,6 +344,7 @@ class CNF:
 					self.assign(literal, True)
 					self.pures.append(str(literal))
 					found = True
+					
 					break
 
 
