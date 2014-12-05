@@ -31,7 +31,7 @@ def solve(cnf, pure, unit, splits):
 	# this clause can only be satisfied by assigning
 	# the necessary value to make this literal true.
 	if unit:
-		count = cnf.unitPropagate()
+		cnf.unitPropagate()
 
 
 	# STEP 1b : Pure Literal Elimination
