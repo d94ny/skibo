@@ -4,10 +4,13 @@ _Daniel Balle • dballe_
 
 ## Intro
 
+This is a simple SAT solver
+
 ## Files
 
 
 ## Usage
 
-	python main.py [file ...]
+	python main.py [file ...] [--heuristic=...] [--info] [--comments] [--help] [--pure]
+
 

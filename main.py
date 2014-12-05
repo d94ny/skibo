@@ -16,6 +16,7 @@ import solver
 import convert
 import time
 import getopt
+import branching
 
 
 # STEP 1 :
@@ -50,6 +51,16 @@ heuristic, comments, info, _help, pure = "firstLiteral", False, False, False, Fa
 for option, value in optlist:
 	if option == "--heuristic":
 		heuristic = value
+
+		# Also set constants for some heuristics
+		if value == "momsf":
+
+			inp = 0
+			while inp == 0:
+				inp = int(raw_input("Please set a positive value for k : "))
+
+			branching.setK(inp)
+
 	elif option == "--comments":
 		comments = True
 	elif option == "--info":

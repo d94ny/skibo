@@ -16,7 +16,11 @@ from collections import defaultdict
 
 # ==== Global constants ====== #
 
-a, b, k = 0, 0, 0
+k = 0
+
+def setK(v):
+	global k
+	k = v
 
 # ======== Helpers =========== #
 
@@ -39,6 +43,102 @@ def minClauses(clauses):
 			minClauses.append(clause)
 
 	return minClauses
+
+
+# Literal Count Helper for :
+# - Jeroslow-Wang heuristic
+# - DLIS (Dynamic Largest Individual Sum) heuristic
+# - MOMS heurisitc
+#
+# Returns the literal maximizing each heurisitcs score
+#
+def literalCountHelper(clauses, id):
+
+	# Assign a score to each literal
+	score = defaultdict(int)
+
+	# Iterate over all clauses
+	for clause in clauses:
+
+		# Determine by how much to increment the score
+		# DLIS : +1 (occurences)
+		# MOMs : +1 (occurences)
+		# JW   : +2^{-|Clause|}
+		incr = 1
+		if id == "jw":
+			incr = math.pow(2, -len(clause.literals))
+
+		for l in clause.literals:
+			score[l] += incr
+
+	# Return the literal maximizing that score
+	return max(score, key=score.get)
+
+
+
+# Variable Count Helper for :
+# - Two sided Jeroslow-Wang heuristic
+# - DLCS (Dynamic Largest Combined Sum) heuristic
+# - MOMSF heurisitc
+#
+# Returns the variable maximizing each heurisitcs score
+#
+def variableCountHelper(clauses, id):
+
+	# Get k for MOMSF
+	global k
+
+	# Assign two scores to each variable x :
+	# 1 - one for the positive literal x
+	# 2 - one for the negative literal -x
+	# 
+	# ex : [Cp and Cn]/[J(x) and J(-x)]/[f(x) and f(-x)]
+	c = defaultdict(lambda: [0,0])
+
+	# Remember the corresponding literal which we have to return
+	# (i.e If we want to assign False to x return literal -x otherwise x)
+	reference = {}
+
+	# Iterate over all clauses
+	for clause in clauses:
+
+		# Determine by how much to increment the score
+		# DLIS  : +1 (occurences)
+		# MOMSF : +1 (occurences)
+		# JW2   : +2^{-|Clause|}
+		incr = 1
+		if id == "jw2":
+			incr = math.pow(2, -len(clause.literals))
+
+		for literal in clause.literals:
+
+			# Determine which score to increment (positive or negative)
+			index = 0 if literal.polarity else 1
+			c[literal.variable][index] += incr
+
+			# Remember the corresponding literal
+			reference[(literal.variable, literal.polarity)] = literal
+
+	# Determine how to combine the score
+	combined = {}
+
+	if id == "momsf":
+		# For momsf use [f(x) + f(-x)] * 2^k + [f(x) * f(-x)]
+		combined = { key : (v[0] + v[1])* math.pow(2,k) + (v[0]*v[1]) for key,v in c.items() }
+
+	else:
+		# For jw2 and dlcs
+		# use the combined value [Cp + Cn]/[J(x) + J(-x)]
+		combined = { key : v[0] + v[1] for key,v in c.items() }
+
+	# Get the variable maximizing this
+	var = max(combined, key=combined.get)
+
+	# Finally return x if [Cp >= Cn]/[J(x) >= J(-x)]/[f(x) >= f(-x)] otherwise -x
+	polarity = True if c[var][0] >= c[var][1] else False
+	return reference[(var, polarity)]
+
+
 
 # ======= Heuristics ========= #
 
@@ -69,15 +169,7 @@ def moms(cnf):
 	minc = minClauses(cnf.clauses)
 
 	# Step 2 : Find the literal with maximum occurence
-	options = [ l for clause in minc for l in clause.literals ]
-
-	# Count the occurences
-	occurences = defaultdict(int)
-	for literal in options:
-		occurences[literal] += 1
-
-	# Returns the maximum
-	return max(occurences, key=occurences.get)
+	return literalCountHelper(minc, "moms")
 
 
 # HEURISTIC 4 :
@@ -85,42 +177,14 @@ def moms(cnf):
 # MOMS alternative heuristic
 # If f(x) the number of occurences of the variable x
 # we choose the variable maximizing 
-# [f(x) + f(\x)] * 2^k + [f(x) * f(\x)]
+# [f(x) + f(-x)] * 2^k + [f(x) * f(-x)]
 def momsf(cnf):
-
-	# Step 0 : get k if not already set
-	global k
-
-	while k == 0:
-		k = int(raw_input("Please enter a postive value for k :"))
 
 	# Step 1 : Find Clauses with Minimum Size
 	minc = minClauses(cnf.clauses)
 
-	# Step 2 : find f(x) and f(\x) for each x
-	options = [ l for clause in minc for l in clause.literals ]
-
-	# Make a dictonary containing (f(x), f(\x))
-	occurences = defaultdict(lambda: [0,0])
-	reference = {}
-
-	for literal in options:
-
-		# Check whether we increment f(x) or f(-x)
-		index = 0 if literal.polarity else 1
-		occurences[literal.variable][index] += 1
-
-		# remember the corresponding literal (no matter the polarity)
-		reference[literal.variable] = literal
-
-	# Step 3 : comupte [f(x) + f(\x)] * 2k + [f(x) * f(\x)] for all x
-	values = { key : (v[0] + v[1])* math.pow(2,k) + (v[0]*v[1]) for key,v in occurences.items() }
-
-	# Step 4 : get the maximum varibale
-	var = max(values, key=values.get)
-
-	# Step 5 : return one of the corresponding literal
-	return reference[var]
+	# Step 2 : Find the variable with maximum score f(x) + f(-x)] * 2^k + [f(x) * f(-x)
+	return variableCountHelper(minc, "momsf")
 
 
 # HEURISTIC 5 :
@@ -132,19 +196,8 @@ def posit(cnf):
 	# Step 1 : Find Clauses with Minimum Size
 	minc = minClauses(cnf.clauses)
 
-	# Step 2 : 
-	options = [ l for clause in minc for l in clause.literals ]
-
-	occurences = defaultdict(int)
-	reference = {}
-
-	for l in options:
-
-		occurences[l.variable] += 1
-		reference[l.variable] = l
-
-	# Return the maximum
-	return reference[max(occurences, key=occurences.get)]
+	# Step 2 : Find the varibale with maximum occurence (like dlcs)
+	return variableCountHelper(minc, "dlcs")
 
 
 # HEURISTIC 6 :
@@ -179,94 +232,48 @@ def ZM(cnf):
 # HEURISTIC 7 :
 # -----
 # DLCS (Dynamic Largest Combined Sum) heuristic
-# Count the number of clauses containing variable x
+# Cp the number of clauses containing literal x 
+# Cn the number of clauses containing literal -x
+# 
+# Here we select the variable maximiing Cp+Cn
+# And return x if Cp > Cn otherwise -x
 def dlcs(cnf):
-
-	occurences = defaultdict(int)
-	reference = {}
-
-	for clause in cnf.clauses:
-
-		for literal in clause.literals:
-			occurences[literal.variable] += 1
-			reference[literal.variable] = literal
-
-	return reference[max(occurences, key=occurences.get)]
+	return variableCountHelper(cnf.clauses, "dlcs")
 
 
 # HEURISTIC 8 :
 # -----
-# BOHM heuristic
-# def bohm(cnf):
-	
-# 	bohmH = defaultdict(list)
-
-# 	for clause in cnf.clauses:
-
-# 		# Determine the length of the clause
-# 		i = len(clause.literals)
-
-# 		# For each literal in the clause, update his hi(x)
-# 		for literal in clause:
-
-# 			bohmH[literal.variable][]
-
-
 # DLIS (Dynamic Largest Individual Sum) heuristic
 # Choose the variable and value that satisfies the maximum number of unsatisfied clauses
-#def dlis(cnf):
-	# ...
-
-
-# VSIDS (Variable State Independent Decaying Sum) heuristic
-#def vsids(cnf):
-	# ...
-
-# Clause-Based heuristic
-#def cbh(cnf):
-	# ...
-
-
-# HEURISTIC 8 :
-# -----
-# Jeroslow-Wang heuristic
-# For each literal compute J(l) = \sum{l in clause c} 2^{-|c|}
-# Return the literal maximizing J
-def jw(cnf):
-	
-	j = defaultdict(int)
-
-	# Iterate over all clauses
-	for clause in cnf.clauses:
-
-		c = len(clause.literals)
-
-		for l in clause.literals:
-			j[l] += math.pow(2, -c)
-
-	return max(j, key=j.get)
+# Like DLCS but we only consider the literal l (Thus Cp and Cn are individual)
+def dlis(cnf):
+	return literalCountHelper(cnf.clauses, "dlis")
 
 
 
 # HEURISTIC 9 :
 # -----
+# Jeroslow-Wang heuristic
+# For each literal compute J(l) = \sum{l in clause c} 2^{-|c|}
+# Return the literal maximizing J
+def jw(cnf):
+	return literalCountHelper(cnf.clauses, "jw")
+
+
+# HEURISTIC 10 :
+# -----
 # Two Sided Jeroslow-Wang heuristic
-# Compute J(l) also counts the negation of l
+# Compute J(l) also counts the negation of l = J(x) + J(-x)
+# We need to keep track of them seperately
+# as we return x if J(x) >= J(-x) otherwise -x
 def jw2(cnf):
+	return variableCountHelper(cnf.clauses, "jw2")
 
-	j = defaultdict(int)
-	reference = {}
-
-	# Iterate over all clauses
-	for clause in cnf.clauses:
-
-		c = len(clause.literals)
-
-		for l in clause.literals:
-			j[l.variable] += math.pow(2, -c)
-			reference[l.variable] = l
-
-	return reference[max(j, key=j.get)]
+# HEURISTIC 11 :
+# -----
+# VSIDS (Variable State Independent Decaying Sum) heuristic
+#def vsids(cnf):
+	# ...
 
 
 # ======== List =========== #
@@ -279,6 +286,8 @@ heuristics = { "firstLiteral": firstLiteral,
 			   "posit": posit,
 			   "jw": jw,
 			   "jw2": jw2,
-			   "dlcs": dlcs
+			   "dlcs": dlcs,
+			   "dlis" : dlis,
+			   "zm" : ZM
 			  }
 
