@@ -38,8 +38,7 @@ class Var:
 	# Equality
 	# Two variables are equal if their ID's are
 	def __eq__(self,other):
-		self.identifier == other.identifier
-
+		return self.identifier == other.identifier
 
 	# Hash for Dictionaries
 	def __hash__(self):
@@ -167,6 +166,8 @@ class Clause:
 # @field solution : keeps track of positively assigned literals
 # @field heuristic : the name of the heuristic used for the
 #                    bracnhing step
+# @field units : contains literals determined by unitPropagation
+# @field pures : contains literals determined by pureElimination
 #
 class CNF:
 
@@ -175,15 +176,19 @@ class CNF:
 	clauses = []
 	solution = []
 	heuristic = ""
+	units = []
+	pures = []
 
 	# ====== Constructors ======== #
 
 
 	# CNF Constructor
-	def __init__(self, clauses, solution, heuristic):
+	def __init__(self, clauses, solution, heuristic, units, pures):
 		self.clauses = clauses
 		self.solution = solution
 		self.heuristic = heuristic
+		self.units = units
+		self.pures = pures
 
 
 	# CNF Factory : creates a new CNF
@@ -193,7 +198,7 @@ class CNF:
 		clauses = [ clause.copy() for clause in self.clauses ]
 
 		# Return a new CNF
-		return CNF(clauses, list(self.solution), self.heuristic)
+		return CNF(clauses, list(self.solution), self.heuristic, list(self.units), list(self.pures))
 
 
 	# Representation for humans
@@ -297,6 +302,7 @@ class CNF:
 				# assign it to True (this removes the corresponding clause)
 				if unit :
 
+					self.units.append(str(unit))
 					self.assign(unit, True)
 					found = True
 
@@ -311,7 +317,8 @@ class CNF:
 	def isPure(self, literal):
 
 		for l in self.getLiterals():
-			if  literal.opposite(l) : return False
+			if literal.opposite(l) :
+				return False
 
 		return True
 
@@ -322,12 +329,23 @@ class CNF:
 	# Note : Unfortunately this is really slow
 	def pureEliminate(self):
 
-		for literal in self.getLiterals():
-			if self.isPure(literal):
+		# Force recomputation
+		# until no more found
 
-				# Assign this literal to be True
-				self.assign(literal, True)
+		found = True
+		while found:
 
+			found = False
 
+			# Remove duplicates
+			for literal in set(self.getLiterals()):
+
+				if self.isPure(literal):
+
+					# Assign this literal to be true
+					self.assign(literal, True)
+					self.pures.append(str(literal))
+					found = True
+					break
 
 

@@ -32,7 +32,7 @@ if len(sys.argv) < 2:
 # -----
 # Retrieve all optional arguments
 try:
-	optlist, args = getopt.getopt(sys.argv[2:], '', ['heuristic=','comments','info','help','pure'])
+	optlist, args = getopt.getopt(sys.argv[2:], '', ['heuristic=','comments','info','help','pure', 'unit'])
 
 except getopt.GetoptError as err:
 	# Display the error
@@ -45,7 +45,7 @@ except getopt.GetoptError as err:
 # Handle the optional arguments
 
 # Set default values for all options
-heuristic, comments, info, _help, pure = "firstLiteral", False, False, False, False
+heuristic, comments, info, _help, pure, unit = "firstLiteral", False, False, False, False, False
 
 # Iterate over optional arguments
 for option, value in optlist:
@@ -67,12 +67,14 @@ for option, value in optlist:
 		info = True
 	elif option == "--help":
 		_help = True
-	elif pure == "--pure":
+	elif option == "--pure":
 		pure = True
+	elif option == "--unit":
+		unit = True
 
 # Display help is needed
 if _help:
-	print "Usage : main.py CNF [--heuristic=...] [--comments] [--info] [--help] [--pure]"
+	print "Usage : main.py CNF [--heuristic=...] [--pure] [--unit] [--comments] [--info] [--help]"
 	exit(0)
 
 
@@ -90,7 +92,7 @@ except Exception as err:
 
 # Clear terminal 
 print chr(27) + "[2J"
-print "Solving %s using heuristic %s... \n\n" % (file, heuristic)
+print "Solving %s using heuristic %s ... \n\n" % (file, heuristic)
 
 
 # STEP 5 :
@@ -118,17 +120,22 @@ splits = [0,0]
 # -----
 # Solve the CNF and mesure performance
 start = time.time()
-sat = solver.solve(cnf, pure, splits)
+sat = solver.solve(cnf, pure, unit, splits)
 end = time.time()
-
 
 # STEP 7 :
 # -----
 # Display results
 
-# If CNF is satisfiable, solver will print a message
-# Otherwise notify user of failure
-if not sat :
+if sat :
+	# Print the solution
+	print " Solution : \n-----------"
+	print " satisfiable !"
+	print " positive literals : (%d) " % len(sat.solutions())
+	print " " + ', '.join(sat.solutions())
+	print
+
+else :
 	print " Solution : \n-----------"
 	print " unsatisfiable !"
 	print
@@ -138,7 +145,13 @@ if info :
 	print " Stats : \n-----------"
 	print " Used heuristic : %r " % heuristic
 	print " Failed splits : %r " % splits[1]
-	print " Successful splits : %r " % (splits[0] - splits[1] + 1)
+	print " Successful splits : %r " % (splits[0] - splits[1])
+
+	# If it was satisfiable
+	if sat:
+		print " Number of units propagated : %r " % (len(sat.units))
+		print " Number of pure eliminations : %r " % (len(sat.pures))
+	
 	print
 
 # Finally display performance

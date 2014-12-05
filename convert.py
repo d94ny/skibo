@@ -106,6 +106,6 @@ def generate(string, heuristic, showInfo, showComments):
 	# STEP 8 :
 	# -----
 	# create CNF with empty solutions
-	return logic.CNF(clauses,[], heuristic)
+	return logic.CNF(clauses,[], heuristic, [], [])
 
 
