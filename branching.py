@@ -93,7 +93,7 @@ def variableCountHelper(clauses, id):
 	# 2 - one for the negative literal -x
 	# 
 	# ex : [Cp and Cn]/[J(x) and J(-x)]/[f(x) and f(-x)]
-	c = defaultdict(lambda: [0,0])
+	score = defaultdict(lambda: [0,0])
 
 	# Remember the corresponding literal which we have to return
 	# (i.e If we want to assign False to x return literal -x otherwise x)
@@ -114,7 +114,7 @@ def variableCountHelper(clauses, id):
 
 			# Determine which score to increment (positive or negative)
 			index = 0 if literal.polarity else 1
-			c[literal.variable][index] += incr
+			score[literal.variable][index] += incr
 
 			# Remember the corresponding literal
 			reference[(literal.variable, literal.polarity)] = literal
@@ -124,18 +124,18 @@ def variableCountHelper(clauses, id):
 
 	if id == "momsf":
 		# For momsf use [f(x) + f(-x)] * 2^k + [f(x) * f(-x)]
-		combined = { key : (v[0] + v[1])* math.pow(2,k) + (v[0]*v[1]) for key,v in c.items() }
+		combined = { key : (v[0] + v[1])* math.pow(2,k) + (v[0]*v[1]) for key,v in score.items() }
 
 	else:
 		# For jw2 and dlcs
 		# use the combined value [Cp + Cn]/[J(x) + J(-x)]
-		combined = { key : v[0] + v[1] for key,v in c.items() }
+		combined = { key : v[0] + v[1] for key,v in score.items() }
 
 	# Get the variable maximizing this
 	var = max(combined, key=combined.get)
 
 	# Finally return x if [Cp >= Cn]/[J(x) >= J(-x)]/[f(x) >= f(-x)] otherwise -x
-	polarity = True if c[var][0] >= c[var][1] else False
+	polarity = True if score[var][0] >= score[var][1] else False
 	return reference[(var, polarity)]
 
 
@@ -268,12 +268,6 @@ def jw(cnf):
 # as we return x if J(x) >= J(-x) otherwise -x
 def jw2(cnf):
 	return variableCountHelper(cnf.clauses, "jw2")
-
-# HEURISTIC 11 :
-# -----
-# VSIDS (Variable State Independent Decaying Sum) heuristic
-#def vsids(cnf):
-	# ...
 
 
 # ======== List =========== #

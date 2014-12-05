@@ -24,7 +24,7 @@ import branching
 # Verify that a CNF file was given
 if len(sys.argv) < 2:
 
-	print "ERROR: Please provide a CNF file"
+	print "ERROR : Please provide a CNF file"
 	exit(0)
 
 
@@ -80,8 +80,13 @@ if _help:
 # -----
 # Open the CNF file
 file = sys.argv[1]
-f = open('../lab/'+file)
-string = f.read()
+try:
+	f = open(file)
+	string = f.read()
+except Exception as err:
+	# Display the error
+	print "ERROR : Could not read CNF file"
+	exit(0)
 
 # Clear terminal 
 print chr(27) + "[2J"
@@ -95,19 +100,25 @@ try:
 	# Generate CNF from string with heuristic
 	# Also takes comments and info
 	cnf = convert.generate(string, heuristic, info, comments)
-except:
+except Exception as err:
 	print "ERROR : The CNF file seems to be invalid"
+	print err
 	exit(0)
 
-# Keep track of failures
-failures = [0]
+# Also verify that the cnf does not already have an empty clause
+if cnf.emptyClause():
+	print "ERROR : The CNF has already an empty clause"
+	exit(0)
+
+# Keep track of total splits and failed splits
+splits = [0,0]
 
 
 # STEP 6 :
 # -----
 # Solve the CNF and mesure performance
 start = time.time()
-sat = solver.solve(cnf, pure, failures)
+sat = solver.solve(cnf, pure, splits)
 end = time.time()
 
 
@@ -120,13 +131,15 @@ end = time.time()
 if not sat :
 	print " Solution : \n-----------"
 	print " unsatisfiable !"
+	print
 
 # If info display number of failed splits
 if info :
-	print " Failed splits : %r " % failures[0]
-
-# Print for better display
-print
+	print " Stats : \n-----------"
+	print " Used heuristic : %r " % heuristic
+	print " Failed splits : %r " % splits[1]
+	print " Successful splits : %r " % (splits[0] - splits[1] + 1)
+	print
 
 # Finally display performance
 if info:

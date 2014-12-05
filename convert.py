@@ -27,13 +27,14 @@ def generate(string, heuristic, showInfo, showComments):
 
 	# STEP 0 :
 	# -----
-	# Sanitize and split into lines
+	# Sanitize
+	# Either using 0's or line breaks
 
 	# replace multiple spaces by a single one
 	clean = re.sub('[ ]+', ' ', string)
 
-	# remove leading spaces and 0's indicating the end of a clause
-	clean = re.sub('(^[ ]+|[ ]+0[ ]*)', '', clean, flags=re.MULTILINE)
+	# remove leading spaces
+	clean = re.sub('^[ ]+', '', clean, flags=re.MULTILINE)
 
 	# split the string into lines and filter empty lines
 	lines = filter(lambda l : l not in [' ',''] , clean.strip().split('\n'))
@@ -57,6 +58,18 @@ def generate(string, heuristic, showInfo, showComments):
 
 	# STEP 3 :
 	# -----
+	# Split into clauses
+	# Either using the 0 character or line breaks (search in clean)
+	if re.search('[ ]+0[ ]*', clean):
+		
+		# 0's are used for the end of clause rather than \n
+		cnf = ' '.join(cnf)
+		cnf = re.sub('[ ]+0[ ]*','\n', cnf)
+		cnf = filter(lambda l : l not in [' ',''] , cnf.strip().split('\n'))
+
+
+	# STEP 4 :
+	# -----
 	# create a variables for each absolute number
 	
 	# get absolute numbers
@@ -68,20 +81,20 @@ def generate(string, heuristic, showInfo, showComments):
 	variables = { i : logic.Var(i) for i in set(absolutes) }
 
 
-	# STEP 4 :
+	# STEP 5 :
 	# -----
 	# create a literal for each number from the variables
 	literals = { i : logic.Literal(variables[abs(i)], (i >= 0)) for i in set(numbers) }
 
 
-	# STEP 5 :
+	# STEP 6 :
 	# -----
 	# create a clause for each line
 	sclauses = [ x.split(' ') for x in cnf ]
 	clauses = [ logic.Clause(map(lambda x : literals[int(x)], line)) for line in sclauses ]
 
 
-	# STEP 6 :
+	# STEP 7 :
 	# -----
 	# display info to user
 	if showInfo :
@@ -89,7 +102,8 @@ def generate(string, heuristic, showInfo, showComments):
 		print " %r variables and %r clauses " % (len(variables), len(clauses))
 		print
 
-	# STEP 7 :
+
+	# STEP 8 :
 	# -----
 	# create CNF with empty solutions
 	return logic.CNF(clauses,[], heuristic)

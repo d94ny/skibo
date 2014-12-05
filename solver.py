@@ -17,11 +17,11 @@ import logic
 #
 # @param cnf : the CNF to be solved
 # @param pure : whether to use Pure Elimination or not
-# @param failures : how many splits were unsuccesful
+# @param splits : number of total splits and unsuccesful splits
 #
 # @return whether cnf is satisfiable or not
 #
-def solve(cnf, pure, failures):
+def solve(cnf, pure, splits):
 
 	# STEP 1a : Unit Propagation
 	# -----
@@ -29,7 +29,7 @@ def solve(cnf, pure, failures):
 	# it contains only a single unassigned literal,
 	# this clause can only be satisfied by assigning
 	# the necessary value to make this literal true.
-	cnf.unitPropagate()
+	count = cnf.unitPropagate()
 
 
 	# STEP 1b : Pure Literal Elimination
@@ -51,7 +51,7 @@ def solve(cnf, pure, failures):
 	if cnf.emptyClause():
 
 		# Increment the number of failed splits
-		failures[0] += 1
+		splits[1] += 1
 		return False
 
 	# STEP 2b :
@@ -63,13 +63,16 @@ def solve(cnf, pure, failures):
 		# Print the solution
 		print " Solution : \n-----------"
 		print " satisfiable !"
-		print cnf.solutions()
+		print " positive literals : (%d) " % len(cnf.solutions())
+		print ', '.join(cnf.solutions())
+		print
 		return True
 
 	# STEP 3 : Branching Step
 	# -----
 	# Select unassigned literal in CNF
 	l = cnf.branch()
+	splits[0] += 1
 
 
 	# STEP 4 :
@@ -85,7 +88,7 @@ def solve(cnf, pure, failures):
 	# -----
 	# Return the disjunction of the satisfiablility of both CNF's
 	# Uses lazy evaluation
-	return solve(cnft, pure, failures) or solve(cnf, pure, failures)
+	return solve(cnft, pure, splits) or solve(cnf, pure, splits)
 
 
 
