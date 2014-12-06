@@ -62,15 +62,15 @@ This SAT solver implements the following branching heuristics which can be selec
 
 * `moms` Maximum Occurrence in clauses of Minimum Size heuristic : returns the literal with the most occurrences in all clauses of minimum size.
  
-* `momsf` Variation of MOMS : If $$$f(x)$$$ is the number of occurrences of the variable x in the clauses of minimum size, we return the variable maximizing $$$(f(x) + f(-x)) * 2^k + (f(x) * f(-x)) $$$
+* `momsf` Variation of MOMS : If f(x) is the number of occurrences of the variable x in the clauses of minimum size, we return the variable maximizing (f(x) + f(-x)) * 2^k + (f(x) * f(-x))
 
 * `posit` Freeman's POSIT version of MOMs : returns the variable with maximum occurrences in all clauses of minimum size.
 
 * `zm` Zabih and McAllester's version of MOMs : returns the variable with maximum negative occurrences in all clauses of minimum size.
 
-* `jw` Jeroslow-Wang heuristic : computes a score for each literal $$$l$$$ based on the length of the clauses that contain it $$$J(l) = \sum_{l \in C} 2^{-|C|}$$$. Returns the literal maximizing that score.
+* `jw` Jeroslow-Wang heuristic : computes a score for each literal l based on the length of the clauses that contain it J(l) = \sum_{l \in C} 2^{-|C|}. Returns the literal maximizing that score.
 
-* `jw2` Two-Sided Jeroslow-Wang heuristic : similar to the previous heuristic but computes the score for each variable $$$x$$$ as $$$J(x) + J(-x)$$$.
+* `jw2` Two-Sided Jeroslow-Wang heuristic : similar to the previous heuristic but computes the score for each variable x as J(x) + J(-x).
 
 * `dlis` Dynamic Largest Individual Sum heuristic : returns the literal with the most occurrences in the formula.
 
