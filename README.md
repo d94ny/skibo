@@ -45,6 +45,8 @@ The algorithm requires the formula to be in Conjunctive Normal Form ([CNF](https
 * Literals are negative integers.
 * Clauses are delimited either by a line break `\n` or a `0`. This SAT solver accepts either format.
 
+You can find examples of DIMACS CNF files in the folder `cnf/`.
+
 For more information please visit :
 
 1. <http://people.sc.fsu.edu/~jburkardt/data/cnf/cnf.html>
