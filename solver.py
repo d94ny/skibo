@@ -18,7 +18,7 @@ import logic
 # @param cnf : the CNF to be solved
 # @param pure : whether to use Pure Elimination or not
 # @param unit : whether to use Unit Propagation or not
-# @param splits : number of total splits and unsuccesful splits
+# @param splits : number of total splits and unsuccessful splits
 #
 # @return whether cnf is satisfiable or not
 #
@@ -78,7 +78,7 @@ def solve(cnf, pure, unit, splits):
 
 	# STEP 5 : 
 	# -----
-	# Return the disjunction of the satisfiablility of both CNF's
+	# Return the disjunction of the satisfiability of both CNF's
 	# Uses lazy evaluation
 	return solve(cnft, pure, unit, splits) or solve(cnf, pure, unit, splits)
 

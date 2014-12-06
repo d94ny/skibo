@@ -48,9 +48,9 @@ def minClauses(clauses):
 # Literal Count Helper for :
 # - Jeroslow-Wang heuristic
 # - DLIS (Dynamic Largest Individual Sum) heuristic
-# - MOMS heurisitc
+# - MOMS heuristic
 #
-# Returns the literal maximizing each heurisitcs score
+# Returns the literal maximizing each heuristics score
 #
 def literalCountHelper(clauses, id):
 
@@ -61,8 +61,8 @@ def literalCountHelper(clauses, id):
 	for clause in clauses:
 
 		# Determine by how much to increment the score
-		# DLIS : +1 (occurences)
-		# MOMs : +1 (occurences)
+		# DLIS : +1 (occurrences)
+		# MOMs : +1 (occurrences)
 		# JW   : +2^{-|Clause|}
 		incr = 1
 		if id == "jw":
@@ -79,9 +79,9 @@ def literalCountHelper(clauses, id):
 # Variable Count Helper for :
 # - Two sided Jeroslow-Wang heuristic
 # - DLCS (Dynamic Largest Combined Sum) heuristic
-# - MOMSF heurisitc
+# - MOMSF heuristic
 #
-# Returns the variable maximizing each heurisitcs score
+# Returns the variable maximizing each heuristics score
 #
 def variableCountHelper(clauses, id):
 
@@ -103,8 +103,8 @@ def variableCountHelper(clauses, id):
 	for clause in clauses:
 
 		# Determine by how much to increment the score
-		# DLIS  : +1 (occurences)
-		# MOMSF : +1 (occurences)
+		# DLIS  : +1 (occurrences)
+		# MOMSF : +1 (occurrences)
 		# JW2   : +2^{-|Clause|}
 		incr = 1
 		if id == "jw2":
@@ -144,7 +144,7 @@ def variableCountHelper(clauses, id):
 
 # HEURISTIC 1 :
 # -----
-# First Occurence heuristic
+# First Occurrence heuristic
 # Simply returns the first literal in the list
 def firstLiteral(cnf):
 	return cnf.getLiterals()[0]
@@ -161,21 +161,21 @@ def randomLiteral(cnf):
 # HEURISTIC 3 :
 # -----
 # MOMS (Maximum Occurrence in clauses of Minimum Size) heuristic
-# Returns the literal whith the most occurences in all
+# Returns the literal with the most occurrences in all
 # clauses of minimum size
 def moms(cnf):
 
 	# Step 1 : Find Clause with Minimum Size
 	minc = minClauses(cnf.clauses)
 
-	# Step 2 : Find the literal with maximum occurence
+	# Step 2 : Find the literal with maximum occurrence
 	return literalCountHelper(minc, "moms")
 
 
 # HEURISTIC 4 :
 # -----
 # MOMS alternative heuristic
-# If f(x) the number of occurences of the variable x
+# If f(x) the number of occurrences of the variable x
 # we choose the variable maximizing 
 # [f(x) + f(-x)] * 2^k + [f(x) * f(-x)]
 def momsf(cnf):
@@ -183,7 +183,7 @@ def momsf(cnf):
 	# Step 1 : Find Clauses with Minimum Size
 	minc = minClauses(cnf.clauses)
 
-	# Step 2 : Find the variable with maximum score f(x) + f(-x)] * 2^k + [f(x) * f(-x)
+	# Step 2 : Find the variable with maximum score [f(x) + f(-x)] * 2^k + [f(x) * f(-x)]
 	return variableCountHelper(minc, "momsf")
 
 
@@ -196,7 +196,7 @@ def posit(cnf):
 	# Step 1 : Find Clauses with Minimum Size
 	minc = minClauses(cnf.clauses)
 
-	# Step 2 : Find the varibale with maximum occurence (like dlcs)
+	# Step 2 : Find the variable with maximum occurrence (like dlcs)
 	return variableCountHelper(minc, "dlcs")
 
 
@@ -235,7 +235,7 @@ def ZM(cnf):
 # Cp the number of clauses containing literal x 
 # Cn the number of clauses containing literal -x
 # 
-# Here we select the variable maximiing Cp+Cn
+# Here we select the variable maximizing Cp+Cn
 # And return x if Cp > Cn otherwise -x
 def dlcs(cnf):
 	return variableCountHelper(cnf.clauses, "dlcs")
@@ -264,7 +264,7 @@ def jw(cnf):
 # -----
 # Two Sided Jeroslow-Wang heuristic
 # Compute J(l) also counts the negation of l = J(x) + J(-x)
-# We need to keep track of them seperately
+# We need to keep track of them separately
 # as we return x if J(x) >= J(-x) otherwise -x
 def jw2(cnf):
 	return variableCountHelper(cnf.clauses, "jw2")

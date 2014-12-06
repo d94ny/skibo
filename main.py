@@ -118,7 +118,7 @@ splits = [0,0]
 
 # STEP 6 :
 # -----
-# Solve the CNF and mesure performance
+# Solve the CNF and measure performance
 start = time.time()
 sat = solver.solve(cnf, pure, unit, splits)
 end = time.time()

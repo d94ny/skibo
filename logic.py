@@ -18,7 +18,7 @@ import branching
 # Var represents a variable
 #
 # @field identifier : an unique integer ID
-# @field assignement : an assignment (True, False or None)
+# @field assignment : an assignment (True, False or None)
 #
 class Var:
 
@@ -165,7 +165,7 @@ class Clause:
 # @field clauses : list of clauses
 # @field solution : keeps track of positively assigned literals
 # @field heuristic : the name of the heuristic used for the
-#                    bracnhing step
+#                    branching step
 # @field units : contains literals determined by unitPropagation
 # @field pures : contains literals determined by pureElimination
 #
@@ -229,15 +229,15 @@ class CNF:
 
 
 	# Branch Split : selects a unassigned literal
-	# accoridng to the heuristic
+	# according to the heuristic
 	def branch(self):
 
-		# Branching heuristics is a dictonary (Map)
+		# Branching heuristics is a dictionary (Map)
 		# of available heuristics
 		try:
 			return branching.heuristics[self.heuristic](self)
 		except Exception as err:
-			print "ERROR : The heurisitc %s does not exist" % (self.heuristic)
+			print "ERROR : The heuristic %s does not exist" % (self.heuristic)
 			print err
 			exit(0)
 
@@ -251,7 +251,7 @@ class CNF:
 			key=lambda x: abs(int(x)))
 
 
-	# Simpify CNF using the assignment of literals
+	# Simplify CNF using the assignment of literals
 	# according to the following rules
 	def simplify(self):
 
@@ -260,16 +260,16 @@ class CNF:
 			lambda c : len(filter(lambda l : l.value(), c.literals)) == 0,
 			self.clauses)
 
-		# RULE 2 : delete all literals with assignement of FALSE
+		# RULE 2 : delete all literals with assignment of FALSE
 		for clause in self.clauses:
 			clause.literals = filter( lambda l : l.value() != False, clause.literals)
 
 
 	# Assigns a value to a literal
-	# and simplifies the CNF direcrtly afterwards
+	# and simplifies the CNF directly afterwards
 	def assign(self, literal, value):
 
-		# 1. Save the assignement in the solutions
+		# 1. Save the assignment in the solutions
 		if value:
 			self.solution.append(str(literal))
 
@@ -327,7 +327,7 @@ class CNF:
 	# required in STEP 1b
 	def pureEliminate(self):
 
-		# Force recomputation of literals
+		# Force re-computation of literals
 		# until no more found
 
 		found = True
@@ -344,7 +344,7 @@ class CNF:
 					self.assign(literal, True)
 					self.pures.append(str(literal))
 					found = True
-					
+
 					break
 
 
